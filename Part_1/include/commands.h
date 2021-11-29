@@ -10,13 +10,13 @@ int lsh_exit(char **args);
 /*
   List of builtin commands, followed by their corresponding functions.
  */
-char *builtin_str[] = {
+static char *builtin_str[] = {
   "cd",
   "help",
   "exit"
 };
 
-int (*builtin_func[]) (char **) = {
+static int (*builtin_func[]) (char **) = {
   &lsh_cd,
   &lsh_help,
   &lsh_exit
