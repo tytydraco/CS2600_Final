@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "../include/commands.h"
+#include "../include/parse.h"
 
 /*
   Builtin function implementations.
@@ -37,4 +39,21 @@ int lsh_help(char **args)
 int lsh_exit(char **args)
 {
   return 0;
+}
+
+int lsh_echo(char **args)
+{
+  char buffer[LSH_TOK_BUFSIZE] = "";
+  char** ptr = args;
+  ptr++;
+
+  while (*ptr != 0)
+  {
+    printf("%s ", *ptr);
+    ++ptr;
+  }
+
+  printf("\n");
+
+  return 1;
 }
