@@ -1,3 +1,3 @@
 #pragma once
 
-#define PROMPT      "> "
+#define PROMPT      "lsh $ "
