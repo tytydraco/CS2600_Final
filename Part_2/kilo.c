@@ -2,6 +2,8 @@
 #include <termios.h>
 #include <unistd.h>
 
+#define TERM_FLAGS ~(ECHO | ICANON)
+
 struct termios orig_termios;
 
 void disableRawMode() {
@@ -15,7 +17,7 @@ void enableRawMode() {
 	struct termios raw = orig_termios;
 
 	tcgetattr(STDIN_FILENO, &raw);
-	raw.c_lflag &= ~(ECHO | ICANON);
+	raw.c_lflag &= TERM_FLAGS;
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
