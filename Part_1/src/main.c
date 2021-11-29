@@ -7,6 +7,7 @@
 #include "../include/commands.h"
 #include "../include/parse.h"
 #include "../include/exec.h"
+#include "../include/config.h"
 
 void lsh_loop(void)
 {
@@ -15,7 +16,7 @@ void lsh_loop(void)
   int status;
 
   do {
-    printf("> ");
+    printf(PROMPT);
     line = lsh_read_line();
     args = lsh_split_line(line);
     status = lsh_execute(args);
@@ -24,7 +25,6 @@ void lsh_loop(void)
     free(args);
   } while (status);
 }
-
 
 int main(int argc, char **argv)
 {
