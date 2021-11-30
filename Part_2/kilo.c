@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define TERM_FLAGS ~(ICRNL | IXON | ECHO | ICANON | IEXTEN | ISIG)
+#define TERM_FLAGS ~(ICRNL | IXON | OPOST | ECHO | ICANON | IEXTEN | ISIG)
 
 struct termios orig_termios;
 
