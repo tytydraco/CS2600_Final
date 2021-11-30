@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include <ctype.h>
 
-#define TERM_FLAGS ~(ICRNL | IXON | OPOST | ECHO | ICANON | IEXTEN | ISIG)
+#define TERM_FLAGS_AND 		~(BRKINT | ICRNL | INPCK | ISTRIP | IXON | OPOST | ECHO | ICANON | IEXTEN | ISIG)
+#define TERM_FLAGS_OR 		(CS8)
 
 struct termios orig_termios;
 
@@ -19,7 +20,8 @@ void enableRawMode() {
 	struct termios raw = orig_termios;
 
 	tcgetattr(STDIN_FILENO, &raw);
-	raw.c_lflag &= TERM_FLAGS;
+	raw.c_lflag &= TERM_FLAGS_AND;
+	raw.c_lflag |= TERM_FLAGS_OR;
 	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
 
