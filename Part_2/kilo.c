@@ -7,6 +7,9 @@
 #include <ctype.h>
 #include <errno.h>
 
+/*** defines ***/
+#define CTRL_KEY(k) ((k) & 0x1f)
+
 #define TERM_FLAGS_I 		~(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
 #define TERM_FLAGS_O		~(OPOST)
 #define TERM_FLAGS_C 		(CS8)
@@ -59,7 +62,7 @@ int main() {
 		} else {
 			printf("%d ('%c')\r\n", c, c);
 		}
-		if (c == 'q') break;
+		if (c == CTRL_KEY('q')) break;
 	}
 
 	return 0;
