@@ -11,24 +11,31 @@
 
 struct termios orig_termios;
 
+void die(const char *s) {
+  	perror(s);
+  	exit(1);
+}
+
 void disableRawMode() {
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios);
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &orig_termios) == -1)
+		die("tcsetattr");
 }
 
 void enableRawMode() {
-	tcgetattr(STDIN_FILENO, &orig_termios);
+	if (tcgetattr(STDIN_FILENO, &orig_termios) == -1)
+		die("tcgetattr");
 	atexit(disableRawMode);
 
 	struct termios raw = orig_termios;
-
-	tcgetattr(STDIN_FILENO, &raw);
 	raw.c_iflag &= TERM_FLAGS_I;
 	raw.c_oflag &= TERM_FLAGS_O;
 	raw.c_cflag |= TERM_FLAGS_C;
 	raw.c_lflag &= TERM_FLAGS_L;
 	raw.c_cc[VMIN] = 0;
   	raw.c_cc[VTIME] = 1;
-	tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
+
+	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
+		die("tcsetattr");
 }
 
 int main() {
