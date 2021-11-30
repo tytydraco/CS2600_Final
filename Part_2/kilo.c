@@ -658,199 +658,198 @@ char *editorPrompt(char *prompt)
 		}
 		else if (c == '\x1b')
 		{
+			editorSetStatusMessage("");
+			free(buf);
+			return NULL;
+		}
+		else if (c == '\r')
+		{
+			if (buflen != 0)
 			{
 				editorSetStatusMessage("");
-				free(buf);
-				return NULL;
+				return buf;
 			}
-			else if (c == '\r')
+		}
+		else if (!iscntrl(c) && c < 128)
+		{
+			if (buflen == bufsize - 1)
 			{
-				if (buflen != 0)
-				{
-					editorSetStatusMessage("");
-					return buf;
-				}
+				bufsize *= 2;
+				buf = realloc(buf, bufsize);
 			}
-			else if (!iscntrl(c) && c < 128)
-			{
-				if (buflen == bufsize - 1)
-				{
-					bufsize *= 2;
-					buf = realloc(buf, bufsize);
-				}
-				buf[buflen++] = c;
-				buf[buflen] = '\0';
-			}
+			buf[buflen++] = c;
+			buf[buflen] = '\0';
 		}
 	}
+}
 
-	void editorMoveCursor(int key)
+void editorMoveCursor(int key)
+{
+	erow *row = (E.cy >= E.numrows) ? NULL : &E.row[E.cy];
+
+	switch (key)
 	{
-		erow *row = (E.cy >= E.numrows) ? NULL : &E.row[E.cy];
-
-		switch (key)
+	case ARROW_LEFT:
+		if (E.cx != 0)
 		{
-		case ARROW_LEFT:
-			if (E.cx != 0)
-			{
-				E.cx--;
-			}
-			else if (E.cy > 0)
-			{
-				E.cy--;
-				E.cx = E.row[E.cy].size;
-			}
-			break;
-		case ARROW_RIGHT:
-			if (row && E.cx < row->size)
-			{
-				E.cx++;
-			}
-			else if (row && E.cx == row->size)
-			{
-				E.cy++;
-				E.cx = 0;
-			}
-			break;
-		case ARROW_UP:
-			if (E.cy != 0)
-				E.cy--;
-			break;
-		case ARROW_DOWN:
-			if (E.cy != E.numrows)
-				E.cy++;
-			break;
+			E.cx--;
 		}
-
-		row = (E.cy >= E.numrows) ? NULL : &E.row[E.cy];
-		int rowlen = row ? row->size : 0;
-		if (E.cx > rowlen)
+		else if (E.cy > 0)
 		{
-			E.cx = rowlen;
-		}
-	}
-
-	void editorProcessKeypress()
-	{
-		static int quit_times = KILO_QUIT_TIMES;
-
-		int c = editorReadKey();
-		switch (c)
-		{
-		case '\r':
-			editorInsertNewline();
-			break;
-
-		case CTRL_KEY('q'):
-			if (E.dirty && quit_times > 0)
-			{
-				editorSetStatusMessage("WARNING!!! File has unsaved changes. "
-									   "Press Ctrl-Q %d more times to quit.",
-									   quit_times);
-				quit_times--;
-				return;
-			}
-			write(STDOUT_FILENO, "\x1b[2J", 4);
-			write(STDOUT_FILENO, "\x1b[H", 3);
-			exit(0);
-			break;
-
-		case CTRL_KEY('s'):
-			editorSave();
-			break;
-
-		case HOME_KEY:
-			E.cx = 0;
-			break;
-		case END_KEY:
-			if (E.cy < E.numrows)
-				E.cx = E.row[E.cy].size;
-			break;
-
-		case BACKSPACE:
-		case CTRL_KEY('h'):
-		case DEL_KEY:
-			if (c == DEL_KEY)
-				editorMoveCursor(ARROW_RIGHT);
-			editorDelChar();
-			break;
-
-		case PAGE_UP:
-		case PAGE_DOWN:
-		{
-			if (c == PAGE_UP)
-			{
-				E.cy = E.rowoff;
-			}
-			else if (c == PAGE_DOWN)
-			{
-				E.cy = E.rowoff + E.screenrows - 1;
-				if (E.cy > E.numrows)
-					E.cy = E.numrows;
-			}
-
-			int times = E.screenrows;
-			while (times--)
-				editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
+			E.cy--;
+			E.cx = E.row[E.cy].size;
 		}
 		break;
-
-		case ARROW_UP:
-		case ARROW_DOWN:
-		case ARROW_LEFT:
-		case ARROW_RIGHT:
-			editorMoveCursor(c);
-			break;
-
-		case CTRL_KEY('l'):
-		case '\x1b':
-			break;
-
-		default:
-			editorInsertChar(c);
-			break;
+	case ARROW_RIGHT:
+		if (row && E.cx < row->size)
+		{
+			E.cx++;
 		}
-
-		quit_times = KILO_QUIT_TIMES;
+		else if (row && E.cx == row->size)
+		{
+			E.cy++;
+			E.cx = 0;
+		}
+		break;
+	case ARROW_UP:
+		if (E.cy != 0)
+			E.cy--;
+		break;
+	case ARROW_DOWN:
+		if (E.cy != E.numrows)
+			E.cy++;
+		break;
 	}
 
-	/*** init ***/
-
-	void initEditor()
+	row = (E.cy >= E.numrows) ? NULL : &E.row[E.cy];
+	int rowlen = row ? row->size : 0;
+	if (E.cx > rowlen)
 	{
+		E.cx = rowlen;
+	}
+}
+
+void editorProcessKeypress()
+{
+	static int quit_times = KILO_QUIT_TIMES;
+
+	int c = editorReadKey();
+	switch (c)
+	{
+	case '\r':
+		editorInsertNewline();
+		break;
+
+	case CTRL_KEY('q'):
+		if (E.dirty && quit_times > 0)
+		{
+			editorSetStatusMessage("WARNING!!! File has unsaved changes. "
+								   "Press Ctrl-Q %d more times to quit.",
+								   quit_times);
+			quit_times--;
+			return;
+		}
+		write(STDOUT_FILENO, "\x1b[2J", 4);
+		write(STDOUT_FILENO, "\x1b[H", 3);
+		exit(0);
+		break;
+
+	case CTRL_KEY('s'):
+		editorSave();
+		break;
+
+	case HOME_KEY:
 		E.cx = 0;
-		E.cy = 0;
-		E.rx = 0;
-		E.rowoff = 0;
-		E.coloff = 0;
-		E.numrows = 0;
-		E.row = NULL;
-		E.dirty = 0;
-		E.filename = NULL;
-		E.statusmsg[0] = '\0';
-		E.statusmsg_time = 0;
+		break;
+	case END_KEY:
+		if (E.cy < E.numrows)
+			E.cx = E.row[E.cy].size;
+		break;
 
-		if (getWindowSize(&E.screenrows, &E.screencols) == -1)
-			die("getWindowSize");
-		E.screenrows -= 2;
-	}
+	case BACKSPACE:
+	case CTRL_KEY('h'):
+	case DEL_KEY:
+		if (c == DEL_KEY)
+			editorMoveCursor(ARROW_RIGHT);
+		editorDelChar();
+		break;
 
-	int main(int argc, char *argv[])
+	case PAGE_UP:
+	case PAGE_DOWN:
 	{
-		enableRawMode();
-		initEditor();
-		if (argc >= 2)
+		if (c == PAGE_UP)
 		{
-			editorOpen(argv[1]);
+			E.cy = E.rowoff;
+		}
+		else if (c == PAGE_DOWN)
+		{
+			E.cy = E.rowoff + E.screenrows - 1;
+			if (E.cy > E.numrows)
+				E.cy = E.numrows;
 		}
 
-		editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
-
-		while (1)
-		{
-			editorRefreshScreen();
-			editorProcessKeypress();
-		}
-
-		return 0;
+		int times = E.screenrows;
+		while (times--)
+			editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
 	}
+	break;
+
+	case ARROW_UP:
+	case ARROW_DOWN:
+	case ARROW_LEFT:
+	case ARROW_RIGHT:
+		editorMoveCursor(c);
+		break;
+
+	case CTRL_KEY('l'):
+	case '\x1b':
+		break;
+
+	default:
+		editorInsertChar(c);
+		break;
+	}
+
+	quit_times = KILO_QUIT_TIMES;
+}
+
+/*** init ***/
+
+void initEditor()
+{
+	E.cx = 0;
+	E.cy = 0;
+	E.rx = 0;
+	E.rowoff = 0;
+	E.coloff = 0;
+	E.numrows = 0;
+	E.row = NULL;
+	E.dirty = 0;
+	E.filename = NULL;
+	E.statusmsg[0] = '\0';
+	E.statusmsg_time = 0;
+
+	if (getWindowSize(&E.screenrows, &E.screencols) == -1)
+		die("getWindowSize");
+	E.screenrows -= 2;
+}
+
+int main(int argc, char *argv[])
+{
+	enableRawMode();
+	initEditor();
+	if (argc >= 2)
+	{
+		editorOpen(argv[1]);
+	}
+
+	editorSetStatusMessage("HELP: Ctrl-S = save | Ctrl-Q = quit");
+
+	while (1)
+	{
+		editorRefreshScreen();
+		editorProcessKeypress();
+	}
+
+	return 0;
+}
