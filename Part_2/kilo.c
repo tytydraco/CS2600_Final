@@ -3,6 +3,7 @@
 #include <termios.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <errno.h>
 
 #define TERM_FLAGS_I 		~(BRKINT | ICRNL | INPCK | ISTRIP | IXON)
 #define TERM_FLAGS_O		~(OPOST)
@@ -43,7 +44,8 @@ int main() {
 
 	while (1) {
 		char c = '\0';
-		read(STDIN_FILENO, &c, 1);
+		if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN)
+			die("read");
 		if (iscntrl(c)) {
 			printf("%d\r\n", c);
 		} else {
