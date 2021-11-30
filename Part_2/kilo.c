@@ -1,3 +1,5 @@
+/*** includes ***/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <termios.h>
@@ -10,7 +12,11 @@
 #define TERM_FLAGS_C 		(CS8)
 #define TERM_FLAGS_L		~(ECHO | ICANON | IEXTEN | ISIG)
 
+/*** data ***/
+
 struct termios orig_termios;
+
+/*** terminal ***/
 
 void die(const char *s) {
   	perror(s);
@@ -38,6 +44,8 @@ void enableRawMode() {
 	if (tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw) == -1)
 		die("tcsetattr");
 }
+
+/*** init ***/
 
 int main() {
 	enableRawMode();
